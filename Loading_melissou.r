@@ -1,18 +1,22 @@
+#Installation des packages
+#install.packages("tidyverse")
+#install.packages("dplyr")
+#install.packages("hablar")
+#install.packages("tibble")
+#install.packages("jsonlite")
+#install.packages("plyr")
+#install.packages("readxl")
+#install.packages("rvest")
+
 #Packages
-library(tidyverse) #install.packages("tidyverse")
-library(plyr) #install.packages("plyr") #install.packages("dplyr")
+library(dplyr) 
 library(tidyverse)
-library(hablar) #install.packages("hablar") #install.packages("tibble")
+library(hablar) 
 
 #Path
-
-#Melisou  : 
-Path_theo = '/Users/theoalegretti/Documents/GitHub/ENSAE_Time-Series-Project/Malt_Production.csv'
-
-
+path_melissa = '/Users/melissa/Desktop/Scolaire/ENSAE/2A/Semestre 2/Time Series/Projet/ENSAE_Time-Series-Project/Malt_Production.csv'
 #Loading
-
-df <- read.csv(Path_theo,sep=';', header =T)
+df <- read.csv(path_melissa, sep=';', header =T)
 names(df) <- c('Time','Y','Code')
 date  <- df[,1]
 Tmax = length(date)
