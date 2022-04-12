@@ -31,9 +31,19 @@ tsY <-ts(df$Y,start = c(1990,1), end = c(2022,2), frequency = 12, names = c("Y")
 
 
 #on est bon => on peut plot pour voir la tête du machin 
-plot(tsY,type="l")
+plot(tsY,type="l", xlab='Années', ylab='Indice brut de production industrielle', main='Série temporelle initiale représentant la production de malt en France')
 abline(h=mean(df$Y),col="red")
 
+#Décomposition de la série initiale
+plot(decompose(tsY), xlab='Années', main='Décomposition cycle-tendance-résidus de la série initiale') 
+
+#Application d'une transformation logarithmique à la série initiale pour lisser les pics
+logtsY <- log(tsY)
+par(mfrow=c(2,1))
+plot(logtsY,type="l", xlab='Années', ylab="Log de l'IPI")
+
+#On trace l'ACF de la série
+acf(logtsY, main="",50, xlab="Lag")
 
 
 
