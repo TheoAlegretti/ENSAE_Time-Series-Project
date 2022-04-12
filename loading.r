@@ -7,6 +7,7 @@ library(tseries) #install.packages("tseries")
 library(forecast) #install.packages("forecast")
 library(TSA) #install.packages("TSA")
 library(FitARMA) #install.packages("FitARMA")
+library(aTSA) #install.packages("aTSA")
 
 #Path
 
@@ -111,9 +112,15 @@ plot(sdY,type="l")
 sdYl <- ltsY - decomposedaddl$seasonal-decomposedaddl$trend 
 plot(sdYl,type="l")
 
+
+adf <- adf.test(sdY)
+#stationnaire ! 
+
+
+
 #on recheck les ACF/PACF 
 sdYn <- na.omit(sdY)
-acf(sdYn,lag.max = 100)
+acf(sdYn,lag.max = 100 )
 pacf(sdYn,lag.max = 100)
  #log
 sdYln<- na.omit(sdYl)
@@ -123,7 +130,7 @@ pacf(sdYln,lag.max = 50)
 #un lag en début d'année significatifs est encore la => AR(p) p>=3 ? 
 
 #test d'un AR(6)
-reg <- lm(sdYn ~ zlag(sdYn,1) + zlag(sdYn,2) +zlag(sdYn,3)+zlag(sdYn,4)+zlag(sdYn,5)+zlag(sdYn,6))
+reg <- lm(sdYn ~ zlag(sdYn,1) + zlag(sdYn,2) +zlag(sdYn,3)+zlag(sdYn,4)+zlag(sdYn,5)+zlag(sdYn,6)+zlag(sdYn,7)+zlag(sdYn,8)+zlag(sdYn,9))
 summary(reg)
 
 
