@@ -105,7 +105,7 @@ plot(s[1:36],type='l')
 abline(v=c(12,24),col="red",lwd=3, lty=2)
 abline(h=1,lty=2,lwd=1,color='purple')
 abline(v=c(2,14,26),col="green") #février pique bas 
-abline(v=c(9,21,33),col="blue")
+abline(v=c(9,21,33),col="blue") #et septembre (fin des vacances (bar saisonnier ... ))
 
 
 #sans seasonalité 
@@ -205,21 +205,16 @@ fit34 <- Arima(sdY, order=c(1,i,0))
 #H1 = résidus dépendant => white noise rejeté 
 #On a besoin d'une P-value > 5 % pour "valider" notre modèle 
 
-checkresiduals(fit24) #pvalue à  0 % => white noise pas ok à 5 % 
-checkresiduals(fit28) #pvalue à 13 % => white noise ok à 5 % 
-checkresiduals(fit22) #pvalue à 0 % => white noise pas ok à 5 % 
-checkresiduals(fit29) #pvalue à 0 % => white noise ok à 5 % 
+checkresiduals(fit24) #pvalue à 1 % => white noise pas ok à 5 % 
+checkresiduals(fit28) #pvalue à 8 % => white noise ok à 5 % 
+checkresiduals(fit22) #pvalue à 7 % => white noise  ok à 5 % 
+checkresiduals(fit29) #pvalue à 11 % => white noise ok à 5 % 
 
 #Le modèle qui semble le plus optimal est le fit28 => ARIMA(4,0,3)
+#on v
 
 
-#le modèle ARIMA(4,0,3) semble être un bon compromis entre la complexicité du modèle et les résultats théorique du white noise
-autoplot(fit28) #Les MA semblent appartenir au cercle unité (si on retire la partie MA ? )
-
-autoplot(fit31) # Le modèle AR(4) pur rejette très fortement l'hypothèse de la blancheur des résidus => on ne pas garder un tel modèle
-checkresiduals(fit31)
-
-#on peut check la significativité des résidus avec un risque de 1 er espece de 5 % 
+#on peut check la significativité des coefficients avec un risque de 1 er espece de 5 % (t-stat )
 signif <- function(estim){
   coef <- estim$coef
   se <- sqrt(diag(estim$var.coef))
@@ -227,31 +222,50 @@ signif <- function(estim){
   pval <- (1-pnorm(abs(t)))*2
   return(rbind(coef,se,pval))
 }
-signif(fit28)
+signif(fit28) # on voit 3 coefficients = 0 à 5 % 
+signif(fit22) # ici, simplement l'intercept =0 (normal on a détrender la série)
+signif(fit29) #ici le 1 er coefficient du MA(1) = 0  #pas utilisable dans le modèle SARIMA (modele pas définit)
 
-#tous les coefficients ont une p-value < 5 % donc on peut considérer ce modèle ! 
 
+#nous avons les ordres maximums p,q => on réintroduit la saisonnalité
+#on prend le modèle le plus large et on test les combinaisons possible, on regardera la parcimonie du modèle (significativité)
 
-#Modèle final SARIMA(4,0,3)(2,0,1) [12] avec trend 
+#on test donc SARIMA(p,0,q,2,0,2)[12] avec p = 0,..,4 et q = 0,..,3 soit 12 modèles
+models <- list()
+AIC <- list()
+BIC <- list()
 
-(fit <- sarima(tsY,4,0,3,2,0,1,12))
+for (p in 0:4){
+  for (q in 0:3){
+    model <- paste('AR',(as.character(p)),'_','MA',as.character(q))
+    fit <- sarima(tsY,p,0,q,2,0,1,12)
+    bic <- fit$BIC
+    aic <- fit$AIC
+    models <- append(models,model)
+    BIC <- append(BIC,bic)
+    AIC <- append(AIC,aic)
+  }}
 
-#AR(1) =AR(3)= SAR2 = 0 
-#probleme de sélection des variables avec le modèles :=> modele SARIMA(3,0,2,2,0,1,12) donne des résidus indépendants + coefficients  significatifs 
+paste((models),(AIC),(BIC))
 
-#Modele mal ajusté (on testes les sous modèles p< 4 et q<3 )
-# on vérifie que les résidus suivent bien une loi normale et que les coefficients soient significatifs 
-# On comparera les modèles valides avec le BIC 
+#sarma (1,0,1)(2,0,1)[12] meilleur AIC / BIC (mais autocorrélation des résidus)
+
+(fit <- sarima(tsY,1,0,1,2,0,1,12))
+
+#probleme de sélection des variables avec le modèle :=> modele SARIMA(3,0,2,2,0,1,12) donne des résidus indépendants + coefficients  significatifs 
 
 #le modèle le plus parcimonieux avec comme résidus un bruit blanc est un SARMA(3,2)(2,0,1)*12
 
-
 (fit <- sarima(tsY,3,0,2,2,0,1,12)) # <=> (fit23) => signif(fit23)
+
 
 #juste les probabilité des quantiles de la loi normale ont du mal sur les queues de distribution => on l'explique facilement avec les outliers de crises 
 
 #on lance le forecasting : 
-forecasting <- sarima.for(tsY,18,3,0,2,2,0,1,12, gg=TRUE, main='Forescating sur 1 ans et demi') 
+forecasting <- sarima.for(tsY,24,3,0,2,2,0,1,12, gg=TRUE, main='Forescating sur 1 ans et demi') 
+
+
+
 
 #augmenter le modèle pour prédire plus rapidement l'information ? 
 
