@@ -8,7 +8,14 @@ library(forecast) #install.packages("forecast")
 library(TSA) #install.packages("TSA")
 library(FitARMA) #install.packages("FitARMA")
 library(aTSA) #install.packages("aTSA")
-
+library(LSTS) #install.packages('LSTS')
+library(astsa) #install.packages('astsa')
+library(fUnitRoots)#install.packages('fUnitRoots')
+library(timeDate)
+library(mvmeta) #install.packages('mvmeta')
+#library(zoo) #install.packages('zoo')
+library(fpp2) #install.packages('fpp2')
+library(equatiomatic) #install.packages('equatiomatic')
 #Path
 
 #Theo : 
@@ -44,6 +51,8 @@ abline(h=mean(log(df$Y),col="red"))
 
 #les chocs semblent être stochastique (pas de changement structurelle de la serie tempo à posteri)
 #besoin de les indiquer par des dummies ? previsible ? 
+#Chocs ? 2018 => Coupe du monde et forte chaleur 
+#2020 => crise covid (confinement et fermeture des bars)
 
 #Il ne semble pas avoir de trend apparante, la saisonnalité m'a pas l'air très apparente => on va utiliser un outil pour décomposer la série
 
@@ -113,38 +122,140 @@ sdYl <- ltsY - decomposedaddl$seasonal-decomposedaddl$trend
 plot(sdYl,type="l")
 
 
-adf <- adf.test(sdY)
-#stationnaire ! 
+adf <- adf.test(sdY,nlag = 30)
+
+pp.test(sdY, type = "Z_tau", lag.short = TRUE, output = TRUE)
+
+kpss.test(sdY)
+
+#Les trois tests confirment que notre série n'est pas une marche aléatoire (avec/sans dérive/trend)
+#On peut donc modéliser la série telle qu'elle sans intégrer la série à l'ordre 1/2 
 
 
+#test avec I(1) => delta-Y_t = Y_t - Y_t-1
+dsdYl <- sdYl -zlag(sdYl,1)
+
+plot(dsdYl,type ='l')
+adf <- adf.test(dsdYl,nlag = NULL)
+
+dsdYn <- na.omit(dsdYl)
+acf(dsdYn,lag.max = 100 )
+pacf(dsdYn,lag.max = 100)
+
+#Inutile (serie déjà stationnaire à l'ordre 0, ajouter l'ordre 1 nous ferai perdre une observation. 
 
 #on recheck les ACF/PACF 
 sdYn <- na.omit(sdY)
 acf(sdYn,lag.max = 100 )
 pacf(sdYn,lag.max = 100)
- #log
-sdYln<- na.omit(sdYl)
-acf(sdYln,lag.max = 100)
-
-pacf(sdYln,lag.max = 50)
-#un lag en début d'année significatifs est encore la => AR(p) p>=3 ? 
-
-#test d'un AR(6)
-reg <- lm(sdYn ~ zlag(sdYn,1) + zlag(sdYn,2) +zlag(sdYn,3)+zlag(sdYn,4)+zlag(sdYn,5)+zlag(sdYn,6)+zlag(sdYn,7)+zlag(sdYn,8)+zlag(sdYn,9))
-summary(reg)
 
 
-#test ARMA(3,3) refaire avec un R moins pété que le mien 
-fitarma2_2 <- FitARMA(sdYn,order=c(3,0,3), demean= TRUE, MeanMLEQ= FALSE,pApprox = 5, MaxLag=20)
-summary(fitarma2_2, which="all")
-coef(fitarma2_2)   
-res <- fitarma2_2$res
-acf(res)
+#PACF nous présente un MA(6) et ACF un AR(4) (les chocs lointain sont des crises (2020 / 2015) => introduction de dummies ? )
+#Idée => test de multiples modèles en utilisant le BIC comme critères d'information (le plus réstrictif)
+#on construit l'ensemble des modèles possible (6 modèles MA) (4 modèles AR) (ARMA(4,6)=>ARMA(1,1) 24 modèles) Total model = 34 
 
-#intégration à l'ordre 1 ? 
+#modelisation : ARIMA (I = 0) 
+
+i <- 0
+fit1 <- Arima(sdY, order=c(0,i,6))
+fit2 <- Arima(sdY, order=c(0,i,5))
+fit3 <- Arima(sdY, order=c(0,i,4))
+fit4 <- Arima(sdY, order=c(0,i,3))
+fit5 <- Arima(sdY, order=c(0,i,2))
+fit6 <- Arima(sdY, order=c(0,i,1))
+fit7 <- Arima(sdY, order=c(1,i,6))
+fit8 <- Arima(sdY, order=c(1,i,5))
+fit9 <- Arima(sdY, order=c(1,i,4))
+fit10 <- Arima(sdY, order=c(1,i,3))
+fit11 <- Arima(sdY, order=c(1,i,2))
+fit12 <- Arima(sdY, order=c(1,i,1))
+fit13 <- Arima(sdY, order=c(2,i,6))
+fit14 <- Arima(sdY, order=c(2,i,5))
+fit15 <- Arima(sdY, order=c(2,i,4))
+fit16 <- Arima(sdY, order=c(2,i,3))
+fit17 <- Arima(sdY, order=c(2,i,2))
+fit18 <- Arima(sdY, order=c(2,i,1))
+fit19 <- Arima(sdY, order=c(3,i,6))
+fit20 <- Arima(sdY, order=c(3,i,5))
+fit21 <- Arima(sdY, order=c(3,i,4))
+fit22 <- Arima(sdY, order=c(3,i,3))
+fit23 <- Arima(sdY, order=c(3,i,2))
+fit24 <- Arima(sdY, order=c(3,i,1))
+fit25 <- Arima(sdY, order=c(4,i,6))
+fit26 <- Arima(sdY, order=c(4,i,5))
+fit27 <- Arima(sdY, order=c(4,i,4))
+fit28 <- Arima(sdY, order=c(4,i,3))
+fit29 <- Arima(sdY, order=c(4,i,2))
+fit30 <- Arima(sdY, order=c(4,i,1))
+fit31 <- Arima(sdY, order=c(4,i,0))
+fit32 <- Arima(sdY, order=c(3,i,0))
+fit33 <- Arima(sdY, order=c(2,i,0))
+fit34 <- Arima(sdY, order=c(1,i,0))
+
+(BIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34))
+(AIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34))
 
 
+#i = 0 
+# fit 24 (ARIMA(3,0,1)) et 28 (ARIMA(4,0,3) ont le BIC les plus faibles
+#fit 22 (ARIMA(3,0,3)) / 29 (ARIMA(4,0,2)) / 28 (ARIMA(4,0,3)) choisit par l'AIC  
+
+#regardons les résidus et les test de Ljung-Box pour la blancheur des résidus
+#H0 = résidus indépendant dans le temps (pas d'autocorrélation) => White noise 
+#H1 = résidus dépendant => white noise rejeté 
+#On a besoin d'une P-value > 5 % pour "valider" notre modèle 
+
+checkresiduals(fit24) #pvalue à  0 % => white noise pas ok à 5 % 
+checkresiduals(fit28) #pvalue à 13 % => white noise ok à 5 % 
+checkresiduals(fit22) #pvalue à 0 % => white noise pas ok à 5 % 
+checkresiduals(fit29) #pvalue à 0 % => white noise ok à 5 % 
+
+#Le modèle qui semble le plus optimal est le fit28 => ARIMA(4,0,3)
 
 
+#le modèle ARIMA(4,0,3) semble être un bon compromis entre la complexicité du modèle et les résultats théorique du white noise
+autoplot(fit28) #Les MA semblent appartenir au cercle unité (si on retire la partie MA ? )
+
+autoplot(fit31) # Le modèle AR(4) pur rejette très fortement l'hypothèse de la blancheur des résidus => on ne pas garder un tel modèle
+checkresiduals(fit31)
+
+#on peut check la significativité des résidus avec un risque de 1 er espece de 5 % 
+signif <- function(estim){
+  coef <- estim$coef
+  se <- sqrt(diag(estim$var.coef))
+  t <- coef/se
+  pval <- (1-pnorm(abs(t)))*2
+  return(rbind(coef,se,pval))
+}
+signif(fit28)
+
+#tous les coefficients ont une p-value < 5 % donc on peut considérer ce modèle ! 
+
+
+#Modèle final SARIMA(4,0,3)(2,0,1) [12] avec trend 
+
+(fit <- sarima(tsY,4,0,3,2,0,1,12))
+
+#AR(1) =AR(3)= SAR2 = 0 
+#probleme de sélection des variables avec le modèles :=> modele SARIMA(3,0,2,2,0,1,12) donne des résidus indépendants + coefficients  significatifs 
+
+#Modele mal ajusté (on testes les sous modèles p< 4 et q<3 )
+# on vérifie que les résidus suivent bien une loi normale et que les coefficients soient significatifs 
+# On comparera les modèles valides avec le BIC 
+
+#le modèle le plus parcimonieux avec comme résidus un bruit blanc est un SARMA(3,2)(2,0,1)*12
+
+
+(fit <- sarima(tsY,3,0,2,2,0,1,12)) # <=> (fit23) => signif(fit23)
+
+#juste les probabilité des quantiles de la loi normale ont du mal sur les queues de distribution => on l'explique facilement avec les outliers de crises 
+
+#on lance le forecasting : 
+forecasting <- sarima.for(tsY,18,3,0,2,2,0,1,12, gg=TRUE, main='Forescating sur 1 ans et demi') 
+
+#augmenter le modèle pour prédire plus rapidement l'information ? 
+
+#utiliser une série co-intégré et exploiter cette co-intégration pour prédire la fabrication de Malt. 
+#exemple de série co-intégré ? => consommation de bière en france 
 
 
