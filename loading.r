@@ -107,7 +107,8 @@ abline(h=1,lty=2,lwd=1,color='purple')
 abline(v=c(2,14,26),col="green") #février pique bas 
 abline(v=c(9,21,33),col="blue") #et septembre (fin des vacances (bar saisonnier ... ))
 
-
+acf(s[1:12]) #P = 1 
+pacf(s[1:12]) #Q = 1#
 #sans seasonalité 
 ssY <- tsY - decomposedadd$seasonal
 plot(ssY,type="l")
@@ -134,7 +135,6 @@ kpss.test(sdY)
 
 #test avec I(1) => delta-Y_t = Y_t - Y_t-1
 dsdYl <- sdYl -zlag(sdYl,1)
-
 plot(dsdYl,type ='l')
 adf <- adf.test(dsdYl,nlag = NULL)
 
@@ -150,9 +150,9 @@ acf(sdYn,lag.max = 100 )
 pacf(sdYn,lag.max = 100)
 
 
-#PACF nous présente un MA(6) et ACF un AR(4) (les chocs lointain sont des crises (2020 / 2015) => introduction de dummies ? )
+#PACF nous présente un MA(6) et ACF un AR(6) (les chocs lointain sont des crises (2020 / 2015) => introduction de dummies ? )
 #Idée => test de multiples modèles en utilisant le BIC comme critères d'information (le plus réstrictif)
-#on construit l'ensemble des modèles possible (6 modèles MA) (4 modèles AR) (ARMA(4,6)=>ARMA(1,1) 24 modèles) Total model = 34 
+#on construit l'ensemble des modèles possible (6 modèles MA) (4 modèles AR) (ARMA(6,6)=>ARMA(1,1) 24 modèles) Total model = 34 
 
 #modelisation : ARIMA (I = 0) 
 
@@ -180,7 +180,7 @@ fit20 <- Arima(sdY, order=c(3,i,5))
 fit21 <- Arima(sdY, order=c(3,i,4))
 fit22 <- Arima(sdY, order=c(3,i,3))
 fit23 <- Arima(sdY, order=c(3,i,2))
-fit24 <- Arima(sdY, order=c(3,i,1))
+fit24 <- Arima(sdY, order=c(3,i,1)) 
 fit25 <- Arima(sdY, order=c(4,i,6))
 fit26 <- Arima(sdY, order=c(4,i,5))
 fit27 <- Arima(sdY, order=c(4,i,4))
@@ -188,30 +188,43 @@ fit28 <- Arima(sdY, order=c(4,i,3))
 fit29 <- Arima(sdY, order=c(4,i,2))
 fit30 <- Arima(sdY, order=c(4,i,1))
 fit31 <- Arima(sdY, order=c(4,i,0))
-fit32 <- Arima(sdY, order=c(3,i,0))
-fit33 <- Arima(sdY, order=c(2,i,0))
-fit34 <- Arima(sdY, order=c(1,i,0))
+fit32 <- Arima(sdY, order=c(5,i,6)) 
+fit33 <- Arima(sdY, order=c(5,i,5))
+fit34 <- Arima(sdY, order=c(5,i,4))
+fit35 <- Arima(sdY, order=c(5,i,3))
+fit36 <- Arima(sdY, order=c(5,i,2))
+fit37 <- Arima(sdY, order=c(5,i,1))
+fit38 <- Arima(sdY, order=c(6,i,6)) 
+fit39 <- Arima(sdY, order=c(6,i,5))
+fit40 <- Arima(sdY, order=c(6,i,4))
+fit41 <- Arima(sdY, order=c(6,i,3))
+fit42 <- Arima(sdY, order=c(6,i,2))
+fit43 <- Arima(sdY, order=c(6,i,1))
+fit44 <- Arima(sdY, order=c(5,i,0))
+fit45 <- Arima(sdY, order=c(6,i,0))
+fit46 <- Arima(sdY, order=c(3,i,0))
+fit47 <- Arima(sdY, order=c(2,i,0))
+fit48 <- Arima(sdY, order=c(1,i,0))
 
-(BIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34))
-(AIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34))
+(BIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34,fit35,fit36,fit37,fit38,fit39,fit40,fit41,fit42,fit43,fit44,fit45,fit46,fit47,fit48))
+(AIC(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13,fit14,fit15,fit16,fit17,fit18,fit19,fit20,fit21,fit22,fit23,fit24,fit25,fit26,fit27,fit28,fit29,fit30,fit31,fit32,fit33,fit34,fit35,fit36,fit37,fit38,fit39,fit40,fit41,fit42,fit43,fit44,fit45,fit46,fit47,fit48))
 
 
 #i = 0 
-# fit 24 (ARIMA(3,0,1)) et 28 (ARIMA(4,0,3) ont le BIC les plus faibles
-#fit 22 (ARIMA(3,0,3)) / 29 (ARIMA(4,0,2)) / 28 (ARIMA(4,0,3)) choisit par l'AIC  
+# fit 17 (ARIMA(2,0,2))) et 29 (ARIMA(4,0,2) ont le BIC les plus faibles
+#fit 22 (ARIMA(3,0,3)) / 29 (ARIMA(4,0,2))  choisit par l'AIC  
 
 #regardons les résidus et les test de Ljung-Box pour la blancheur des résidus
 #H0 = résidus indépendant dans le temps (pas d'autocorrélation) => White noise 
 #H1 = résidus dépendant => white noise rejeté 
 #On a besoin d'une P-value > 5 % pour "valider" notre modèle 
 
-checkresiduals(fit24) #pvalue à 1 % => white noise pas ok à 5 % 
-checkresiduals(fit28) #pvalue à 8 % => white noise ok à 5 % 
+checkresiduals(fit17) #pvalue à 2.7 % => white noise pas ok à 5 % 
 checkresiduals(fit22) #pvalue à 7 % => white noise  ok à 5 % 
 checkresiduals(fit29) #pvalue à 11 % => white noise ok à 5 % 
 
 #Le modèle qui semble le plus optimal est le fit28 => ARIMA(4,0,3)
-#on v
+
 
 
 #on peut check la significativité des coefficients avec un risque de 1 er espece de 5 % (t-stat )
@@ -222,23 +235,22 @@ signif <- function(estim){
   pval <- (1-pnorm(abs(t)))*2
   return(rbind(coef,se,pval))
 }
-signif(fit28) # on voit 3 coefficients = 0 à 5 % 
 signif(fit22) # ici, simplement l'intercept =0 (normal on a détrender la série)
-signif(fit29) #ici le 1 er coefficient du MA(1) = 0  #pas utilisable dans le modèle SARIMA (modele pas définit)
+signif(fit29) #ici le 1 er coefficient du MA(1) = 0  
 
 
 #nous avons les ordres maximums p,q => on réintroduit la saisonnalité
 #on prend le modèle le plus large et on test les combinaisons possible, on regardera la parcimonie du modèle (significativité)
 
-#on test donc SARIMA(p,0,q,2,0,2)[12] avec p = 0,..,4 et q = 0,..,3 soit 12 modèles
+#on test donc SARIMA(p,0,q,2,0,2)[12] avec p = 0,..,4 et q = 0,..,2 
 models <- list()
 AIC <- list()
 BIC <- list()
 
 for (p in 0:4){
-  for (q in 0:3){
+  for (q in 0:2){
     model <- paste('AR',(as.character(p)),'_','MA',as.character(q))
-    fit <- sarima(tsY,p,0,q,2,0,1,12)
+    fit <- sarima(tsY,p,0,q,1,0,1,12)
     bic <- fit$BIC
     aic <- fit$AIC
     models <- append(models,model)
@@ -250,19 +262,19 @@ paste((models),(AIC),(BIC))
 
 #sarma (1,0,1)(2,0,1)[12] meilleur AIC / BIC (mais autocorrélation des résidus)
 
-(fit <- sarima(tsY,1,0,1,2,0,1,12))
+(fit <- sarima(tsY,2,0,2,1,0,1,12))
 
 #probleme de sélection des variables avec le modèle :=> modele SARIMA(3,0,2,2,0,1,12) donne des résidus indépendants + coefficients  significatifs 
 
 #le modèle le plus parcimonieux avec comme résidus un bruit blanc est un SARMA(3,2)(2,0,1)*12
 
-(fit <- sarima(tsY,3,0,2,2,0,1,12)) # <=> (fit23) => signif(fit23)
+(fit <- sarima(tsY,3,0,1,1,0,1,12)) # <=> (fit23) => signif(fit23)
 
-
+signif(fit23)
 #juste les probabilité des quantiles de la loi normale ont du mal sur les queues de distribution => on l'explique facilement avec les outliers de crises 
 
 #on lance le forecasting : 
-forecasting <- sarima.for(tsY,24,3,0,2,2,0,1,12, gg=TRUE, main='Forescating sur 1 ans et demi') 
+forecasting <- sarima.for(tsY,24,3,0,1,1,0,1,12, gg=TRUE, main='Forescating sur 1 ans et demi') 
 
 
 
